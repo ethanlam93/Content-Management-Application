@@ -52,7 +52,7 @@ const init = () => {
                     console.log("done");
                     break;
                 case "Update employee role":
-                    //run function
+                    updateEmployeeRole(init)
                     console.log("done");
                     break;
                 case "Update manager":
@@ -232,16 +232,59 @@ const removeEmployee = () => {
                 message: "Who would you like to remove?",
                 choices: employee
             }]).then((answer) => {
-                employeeId = result.filter((item)=> item.name === answer.removedEmployee)
+                employeeId = result.filter((item) => item.name === answer.removedEmployee)
                 connection.query(`DELETE FROM employee
-                WHERE id = ?`,employeeId[0].id, function (err, result) {
+                WHERE id = ?`, employeeId[0].id, function (err, result) {
                     if (err) throw err;
                     console.log(`Successfully deleted ${answer.removedEmployee}`)
                     init()
                 })
             })
     })
+}
 
+const updateEmployeeRole = (init) => {
+    connection.query(`SELECT 
+    employee.id,
+    CONCAT_WS(" ",first_name,last_name) AS name
+    FROM employee;`, function (err, result) {
+        if (err) throw err;
+        const employeeList = result;
+        const employeeNameArray = result.map((item) => item.name)
+        connection.query(`SELECT 
+        roles.id AS roleID,
+        roles.title
+        FROM roles;`, function (err, result) {
+            if (err) throw err;
+            const employeeRoleList = result;
+            const employeeRoleArray = result.map((item) => item.title)
+            inquirer.prompt([
+                {
+                    type: "list",
+                    name: "employeeToUpdate",
+                    message: "Who would you like to update?",
+                    choices: employeeNameArray
+                },
+                {
+                    type: "list",
+                    name: "roleToUpdate",
+                    message: "What role you would like to update this employee?",
+                    choices: employeeRoleArray
+                }
+            ]).then((answer) => {
+                const selectedEmployeeToUpdate = employeeList.filter((item)=> item.name === answer.employeeToUpdate)
+                const selectedRoleToUpdate = employeeRoleList.filter((item)=> item.title === answer.roleToUpdate)
+                connection.query(`UPDATE employee
+                SET 
+                role_id = ?
+                WHERE
+                employee.id = ?;`,[selectedRoleToUpdate[0].roleID,selectedEmployeeToUpdate[0].id],function (err, result) {
+                    if (err) throw err;
+                    console.log(`Successfully updated ${selectedEmployeeToUpdate[0].name}'s role to ${selectedRoleToUpdate[0].title}`)
+                })
+            })
+        })
+    })
 }
 
 
