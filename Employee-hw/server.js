@@ -48,7 +48,7 @@ const init = () => {
                     addEmployee(init)
                     break;
                 case "Remove employee":
-                    //run function
+                    removeEmployee(init)
                     console.log("done");
                     break;
                 case "Update employee role":
@@ -201,19 +201,48 @@ const addEmployee = (init) => {
                     choices: managerList
                 },
             ]).then((answer) => {
-                const selectedRole = roleData.filter((item)=> item.title === answer.role)
+                const selectedRole = roleData.filter((item) => item.title === answer.role)
                 // console.log((selectedRole) )// log selected Role
-                const selectedManager = managerData.filter((item)=> item.managerName === answer.manager)
+                const selectedManager = managerData.filter((item) => item.managerName === answer.manager)
                 // console.log(selectedManager)// log selected manager
                 connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-                VALUES (?, ?, ?, ?)`,[answer.firstname,answer.lastname,selectedRole[0].id,selectedManager[0].id], function (err, result) {
+                VALUES (?, ?, ?, ?)`, [answer.firstname, answer.lastname, selectedRole[0].id, selectedManager[0].id], function (err, result) {
                     if (err) throw err;
                     console.log(`SUCCESSFULLY ADDED NEW EMPLOYEE: ${answer.firstname} ${answer.lastname}`)
                     init()
                 })
             })
         })
-    })}
+    })
+}
+
+//Remove Employee
+const removeEmployee = () => {
+    //Query All Employee name and id from database
+    connection.query(`SELECT 
+    id,
+    CONCAT_WS(" ",first_name,last_name) AS name
+    FROM employee`, function (err, result) {
+        if (err) throw err;
+        let employee = result.map((item) => item.name)
+        inquirer.prompt([
+            {
+                type: "list",
+                name: "removedEmployee",
+                message: "Who would you like to remove?",
+                choices: employee
+            }]).then((answer) => {
+                employeeId = result.filter((item)=> item.name === answer.removedEmployee)
+                connection.query(`DELETE FROM employee
+                WHERE id = ?`,employeeId[0].id, function (err, result) {
+                    if (err) throw err;
+                    console.log(`Successfully deleted ${answer.removedEmployee}`)
+                    init()
+                })
+            })
+    })
+
+}
 
 
 //run program
