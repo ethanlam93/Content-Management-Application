@@ -202,9 +202,9 @@ const addEmployee = (init) => {
                 },
             ]).then((answer) => {
                 const selectedRole = roleData.filter((item)=> item.title === answer.role)
-                console.log((selectedRole) )// log selected Role
+                // console.log((selectedRole) )// log selected Role
                 const selectedManager = managerData.filter((item)=> item.managerName === answer.manager)
-                console.log(selectedManager)// log selected manager
+                // console.log(selectedManager)// log selected manager
                 connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                 VALUES (?, ?, ?, ?)`,[answer.firstname,answer.lastname,selectedRole[0].id,selectedManager[0].id], function (err, result) {
                     if (err) throw err;
