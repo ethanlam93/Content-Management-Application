@@ -1,6 +1,7 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
+const emoji = require('node-emoji')
 
 //Create connection to MySQL database
 const connection = mysql.createConnection({
@@ -76,9 +77,6 @@ const viewAllEmployee = (init) => {
     JOIN department ON department.id = roles.department_id
     ORDER BY employee.id`, function (err, result) {
         if (err) throw err;
-        // console.log(result) // access result
-        // console.log(result[0]["First Name"]) // access First Name
-        // console.log(result[0].Title) // access title
         console.table(result);
         init()
     });
@@ -124,7 +122,7 @@ const viewByDepartment = (init) => {
 const viewbyManager = (init) => {
     connection.query(`SELECT managerName FROM manager`, function (err, result) {
         if (err) throw err;
-        //Create an array that holds a list of all department
+        //Create an array that holds a list of all manager
         const managerList = result.map((item) => item.managerName);
         inquirer.prompt([
             {
@@ -160,15 +158,12 @@ const viewbyManager = (init) => {
 const addEmployee = (init) => {
     connection.query(`SELECT roles.id, roles.title FROM roles`, function (err, result) {
         if (err) throw err;
-        // console.log(result)
         const roleData = result;
-        const roleList = result.map((item) => item.title);
+        const roleList = result.map((item) => item.title);// array holds all the roles
         connection.query(`SELECT manager.id, managerName FROM manager`, function (err, result) {
             if (err) throw err;
-            //Create an array that holds a list of all department
-            const managerList = result.map((item) => item.managerName);
-            const managerData = result;
-            // console.log(result)
+            const managerList = result.map((item) => item.managerName);//array holds all the manager
+            const managerData = result;// contain all manager name and manager id
             inquirer.prompt([
                 {
                     type: "input",
@@ -199,14 +194,12 @@ const addEmployee = (init) => {
                     choices: managerList
                 },
             ]).then((answer) => {
-                const selectedRole = roleData.filter((item) => item.title === answer.role)
-                // console.log((selectedRole) )// log selected Role
-                const selectedManager = managerData.filter((item) => item.managerName === answer.manager)
-                // console.log(selectedManager)// log selected manager
+                const selectedRole = roleData.filter((item) => item.title === answer.role) // filter the get the selected role
+                const selectedManager = managerData.filter((item) => item.managerName === answer.manager)// filter the get the selected manager
                 connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                 VALUES (?, ?, ?, ?)`, [answer.firstname, answer.lastname, selectedRole[0].id, selectedManager[0].id], function (err, result) {
                     if (err) throw err;
-                    console.log(`SUCCESSFULLY ADDED NEW EMPLOYEE: ${answer.firstname} ${answer.lastname}`)
+                    console.log(`${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}SUCCESSFULLY ADDED NEW EMPLOYEE: ${answer.firstname} ${answer.lastname}${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}`)
                     init()
                 })
             })
@@ -222,7 +215,7 @@ const removeEmployee = () => {
     CONCAT_WS(" ",first_name,last_name) AS name
     FROM employee`, function (err, result) {
         if (err) throw err;
-        let employee = result.map((item) => item.name)
+        let employee = result.map((item) => item.name) // array holds all employee name
         inquirer.prompt([
             {
                 type: "list",
@@ -230,11 +223,11 @@ const removeEmployee = () => {
                 message: "Who would you like to remove?",
                 choices: employee
             }]).then((answer) => {
-                employeeId = result.filter((item) => item.name === answer.removedEmployee)
+                employeeId = result.filter((item) => item.name === answer.removedEmployee) // filter to get selected employee to remove
                 connection.query(`DELETE FROM employee
                 WHERE id = ?`, employeeId[0].id, function (err, result) {
                     if (err) throw err;
-                    console.log(`Successfully deleted ${answer.removedEmployee}`)
+                    console.log(`${emoji.get("x")}${emoji.get("x")}${emoji.get("x")}Successfully deleted ${answer.removedEmployee} ${emoji.get("x")}${emoji.get("x")}${emoji.get("x")}`)
                     init()
                 })
             })
@@ -247,15 +240,15 @@ const updateEmployeeRole = (init) => {
     CONCAT_WS(" ",first_name,last_name) AS name
     FROM employee;`, function (err, result) {
         if (err) throw err;
-        const employeeList = result;
-        const employeeNameArray = result.map((item) => item.name)
+        const employeeList = result;// array holds all employee data including name and id
+        const employeeNameArray = result.map((item) => item.name)// array holds just employee name
         connection.query(`SELECT 
         roles.id AS roleID,
         roles.title
         FROM roles;`, function (err, result) {
             if (err) throw err;
-            const employeeRoleList = result;
-            const employeeRoleArray = result.map((item) => item.title)
+            const employeeRoleList = result;;// array holds all role data including roleName and id
+            const employeeRoleArray = result.map((item) => item.title)// array holds just roles name
             inquirer.prompt([
                 {
                     type: "list",
@@ -270,7 +263,9 @@ const updateEmployeeRole = (init) => {
                     choices: employeeRoleArray
                 }
             ]).then((answer) => {
+                //filter to get the selected employee to update
                 const selectedEmployeeToUpdate = employeeList.filter((item)=> item.name === answer.employeeToUpdate)
+                //filter to get the selected role to update
                 const selectedRoleToUpdate = employeeRoleList.filter((item)=> item.title === answer.roleToUpdate)
                 connection.query(`UPDATE employee
                 SET 
@@ -278,7 +273,7 @@ const updateEmployeeRole = (init) => {
                 WHERE
                 employee.id = ?;`,[selectedRoleToUpdate[0].roleID,selectedEmployeeToUpdate[0].id],function (err, result) {
                     if (err) throw err;
-                    console.log(`Successfully updated ${selectedEmployeeToUpdate[0].name}'s role to ${selectedRoleToUpdate[0].title}`)
+                    console.log(`${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}Successfully updated ${selectedEmployeeToUpdate[0].name}'s role to ${selectedRoleToUpdate[0].title}${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}${emoji.get("white_check_mark")}`)
                     init()
                 })
             })
@@ -286,21 +281,22 @@ const updateEmployeeRole = (init) => {
     })
 }
 
+//Update Manager
 const updateEmployeeManager = (init) => {
     connection.query(`SELECT 
     employee.id,
     CONCAT_WS(" ",first_name,last_name) AS name
     FROM employee;`, function (err, result) {
         if (err) throw err;
-        const employeeList = result;
-        const employeeNameArray = result.map((item) => item.name)
+        const employeeList = result;// array holds all employee data including name and id
+        const employeeNameArray = result.map((item) => item.name)// array holds just employee name
         connection.query(`SELECT 
         manager.id AS managerID,
         manager.managerName
         FROM manager;`, function (err, result) {
             if (err) throw err;
-            const employeeManagerList = result;
-            const employeeManagerArray = result.map((item) => item.managerName)
+            const employeeManagerList = result;// array holds all manager data including managerName and id
+            const employeeManagerArray = result.map((item) => item.managerName) // array holds just managers name
             inquirer.prompt([
                 {
                     type: "list",
@@ -315,7 +311,9 @@ const updateEmployeeManager = (init) => {
                     choices: employeeManagerArray
                 }
             ]).then((answer) => {
+                //filter to get the selected employee to update
                 const selectedEmployeeToUpdate = employeeList.filter((item)=> item.name === answer.employeeToUpdate)
+                //filter to get the selected manager to update
                 const selectedManagerToUpdate = employeeManagerList.filter((item)=> item.managerName === answer.managerToUpdate)
                 connection.query(`UPDATE employee
                 SET 
