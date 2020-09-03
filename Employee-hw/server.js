@@ -49,15 +49,12 @@ const init = () => {
                     break;
                 case "Remove employee":
                     removeEmployee(init)
-                    console.log("done");
                     break;
                 case "Update employee role":
                     updateEmployeeRole(init)
-                    console.log("done");
                     break;
                 case "Update manager":
-                    //run function
-                    console.log("done");
+                    updateEmployeeManager(init)
                     break;
             }
         })
@@ -76,7 +73,8 @@ const viewAllEmployee = (init) => {
     FROM employee
     JOIN manager ON employee.manager_id = manager.id
     JOIN roles ON employee.role_id = roles.id
-    JOIN department ON department.id = roles.department_id`, function (err, result) {
+    JOIN department ON department.id = roles.department_id
+    ORDER BY employee.id`, function (err, result) {
         if (err) throw err;
         // console.log(result) // access result
         // console.log(result[0]["First Name"]) // access First Name
@@ -281,6 +279,52 @@ const updateEmployeeRole = (init) => {
                 employee.id = ?;`,[selectedRoleToUpdate[0].roleID,selectedEmployeeToUpdate[0].id],function (err, result) {
                     if (err) throw err;
                     console.log(`Successfully updated ${selectedEmployeeToUpdate[0].name}'s role to ${selectedRoleToUpdate[0].title}`)
+                    init()
+                })
+            })
+        })
+    })
+}
+
+const updateEmployeeManager = (init) => {
+    connection.query(`SELECT 
+    employee.id,
+    CONCAT_WS(" ",first_name,last_name) AS name
+    FROM employee;`, function (err, result) {
+        if (err) throw err;
+        const employeeList = result;
+        const employeeNameArray = result.map((item) => item.name)
+        connection.query(`SELECT 
+        manager.id AS managerID,
+        manager.managerName
+        FROM manager;`, function (err, result) {
+            if (err) throw err;
+            const employeeManagerList = result;
+            const employeeManagerArray = result.map((item) => item.managerName)
+            inquirer.prompt([
+                {
+                    type: "list",
+                    name: "employeeToUpdate",
+                    message: "Who would you like to update?",
+                    choices: employeeNameArray
+                },
+                {
+                    type: "list",
+                    name: "managerToUpdate",
+                    message: "What manager you would like to change to?",
+                    choices: employeeManagerArray
+                }
+            ]).then((answer) => {
+                const selectedEmployeeToUpdate = employeeList.filter((item)=> item.name === answer.employeeToUpdate)
+                const selectedManagerToUpdate = employeeManagerList.filter((item)=> item.managerName === answer.managerToUpdate)
+                connection.query(`UPDATE employee
+                SET 
+                manager_id = ?
+                WHERE
+                employee.id = ?;`,[selectedManagerToUpdate[0].managerID,selectedEmployeeToUpdate[0].id],function (err, result) {
+                    if (err) throw err;
+                    console.log(`Successfully updated ${selectedEmployeeToUpdate[0].name}'s manager to ${selectedManagerToUpdate[0].managerName}`)
+                    init()
                 })
             })
         })
