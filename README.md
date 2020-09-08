@@ -31,10 +31,12 @@ Build a command-line application that at a minimum allows the user to:
 ## Installation
 node server.js
 
-## Screenshot and Video Demo
+## Screenshot
 <img width="556" alt="Screen Shot 2020-09-08 at 12 01 20 AM" src="https://user-images.githubusercontent.com/64672854/92432038-08d00f00-f167-11ea-8206-eb269d6cbd5b.png">
 <img width="831" alt="Screen Shot 2020-09-08 at 12 01 25 AM" src="https://user-images.githubusercontent.com/64672854/92432039-08d00f00-f167-11ea-84ce-dc5c14a64815.png">
 
+## Video Demo
+https://www.youtube.com/watch?v=FPF69mRr0IA&feature=youtu.be
 
 
 
